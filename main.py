@@ -4,6 +4,7 @@ from flask_fullstack import SocketIO
 
 from common import app
 from users import reglog_namespace
+from rock_paper import game_namespace
 
 jwt = app.configure_jwt_with_loaders(
     ["cookies"],
@@ -14,6 +15,7 @@ jwt = app.configure_jwt_with_loaders(
 api = app.configure_restx()
 
 api.add_namespace(reglog_namespace)
+api.add_namespace(game_namespace)
 
 socketio = SocketIO(
     app,

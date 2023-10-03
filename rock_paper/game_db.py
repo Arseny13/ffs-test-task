@@ -1,17 +1,17 @@
 from __future__ import annotations
-import enum
 import random
 import string
 
-from flask_fullstack import PydanticModel
+from flask_fullstack import PydanticModel, TypeEnum
 from sqlalchemy import Column, select, ForeignKey
-from sqlalchemy.sql.sqltypes import Integer, String
-from sqlalchemy_utils.types import ChoiceType
+from sqlalchemy.sql.sqltypes import Integer, String, Enum
+from sqlalchemy.orm import relationship
 
+from common import User
 from common.config import Base, db
 
 
-class AnswerType(enum.Enum):
+class AnswerType(TypeEnum):
     ROCK = 'ROCK'
     PAPPER = 'PAPPER'
     SCISSORS = 'SCISSORS'
@@ -74,10 +74,13 @@ class GameUser(Base):
         ForeignKey('users.id'),
         nullable=False
     )
-    answer: Column | AnswerType = Column(ChoiceType(AnswerType))
+    answer: Column | AnswerType = Column(Enum(AnswerType))
     result: Column | str = Column(String(4))
 
-    MainData = PydanticModel.column_model(id, game_id)
+    game: relationship = relationship(Game)
+    user: relationship = relationship(User)
+
+    MainData = PydanticModel.column_model(id, game_id, user_id, answer, result)
 
     @classmethod
     def find_by_id(cls, game_id: int, user_id: int) -> GameUser | None:
@@ -98,6 +101,11 @@ class GameUser(Base):
                 user_id != user_id
             )
         )
+
+    @classmethod
+    def get_all(cls, user_id: int) -> GameUser | None:
+        """Получение всех игр пользовальля."""
+        return db.session.query(cls).filter_by(user_id=user_id).all()
 
     @classmethod
     def create(
