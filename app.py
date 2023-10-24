@@ -23,5 +23,6 @@ with app.app_context():
 app.after_request(db.with_autocommit)
 socketio.after_event(db.with_autocommit)
 
+
 if __name__ == "__main__":  # test only
     socketio.run(app=app, debug=True)

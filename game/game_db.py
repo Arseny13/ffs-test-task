@@ -11,10 +11,20 @@ from common import User
 from common.config import Base, db
 
 
-class AnswerType(TypeEnum):
-    ROCK = 'ROCK'
-    PAPPER = 'PAPPER'
-    SCISSORS = 'SCISSORS'
+class Answers(TypeEnum):
+    ROCK = 'rock'
+    PAPPER = 'papper'
+    SCISSORS = 'scissors'
+
+    @classmethod
+    def list(cls) -> list:
+        return [answer.value for answer in Answers]
+
+
+class GameResults(TypeEnum):
+    WIN = 1
+    LOSE = -1
+    TIE = 0
 
 
 class Game(Base):
@@ -57,6 +67,10 @@ class Game(Base):
             number=cls.generate_number()
         )
 
+    @classmethod
+    def get_all(cls, user_id: int) -> list | None:
+        return db.session.query(cls).filter_by(user_id=user_id).all()
+
 
 class GameUser(Base):
     """Таблица Игры c пользователем."""
@@ -74,13 +88,15 @@ class GameUser(Base):
         ForeignKey('users.id'),
         nullable=False
     )
-    answer: Column | AnswerType = Column(Enum(AnswerType))
-    result: Column | str = Column(String(4))
+    answer: Column | Answers = Column(Enum(Answers))
+    result: Column | GameResults = Column(Enum(GameResults))
 
     game: relationship = relationship(Game)
     user: relationship = relationship(User)
 
     MainData = PydanticModel.column_model(id, game_id, user_id, answer, result)
+    AnswerModel = PydanticModel.column_model(answer)
+    ResultModel = PydanticModel.column_model(result)
 
     @classmethod
     def find_by_id(cls, game_id: int, user_id: int) -> GameUser | None:
@@ -110,7 +126,8 @@ class GameUser(Base):
     @classmethod
     def create(
         cls, game_id: int,
-        user_id: int, answer: str,
+        user_id: int,
+        answer: str,
         result: str
     ) -> GameUser | None:
         """

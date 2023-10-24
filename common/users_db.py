@@ -53,7 +53,10 @@ class User(Base, UserRole, Identifiable):
 
     @classmethod
     def create(cls, username: str, password: str) -> User | None:
-        return super().create(username=username, password=cls.generate_hash(password))
+        return super().create(
+            username=username,
+            password=cls.generate_hash(password)
+        )
 
     def get_identity(self) -> int:
         return self.id
